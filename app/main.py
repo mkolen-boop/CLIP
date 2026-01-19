@@ -77,22 +77,25 @@ def health():
 
 @app.post("/classify")
 async def classify(file: UploadFile = File(...)):
-    # Перевірка типу
     if not file.content_type or not file.content_type.startswith("image/"):
-        return {"error": "Please upload an image file (content-type must start with image/)."}
+        return {"error": f"Not an image content-type: {file.content_type}"}
 
-    # Читаємо байти
     raw = await file.read()
 
-    # Відкриваємо як PIL Image
     try:
         pil = Image.open(io.BytesIO(raw)).convert("RGB")
-    except Exception:
-        return {"error": "Cannot read this file as an image."}
+    except Exception as e:
+        # щоб ти бачив у логах, що саме прилетіло
+        return {
+            "error": "Cannot read this file as an image.",
+            "details": str(e),
+            "content_type": file.content_type,
+            "size_bytes": len(raw),
+        }
 
-    label, conf = classify_image(pil)
+    try:
+        label, conf = classify_image(pil)
+    except Exception as e:
+        return {"error": "Model inference failed.", "details": str(e)}
 
-    return {
-        "type": label,
-        "confidence": round(conf, 4),
-    }
+    return {"type": label, "confidence": round(conf, 4)}
