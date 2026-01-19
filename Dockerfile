@@ -6,7 +6,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     libjpeg62-turbo-dev \
     zlib1g-dev \
+    libwebp-dev \
+    libopenjp2-7 \
     && rm -rf /var/lib/apt/lists/*
+
 
 WORKDIR /app
 
